@@ -11,7 +11,6 @@
 #include <unordered_set>
 #include <iomanip>
 
-// Mencari titik ruang 3D
 struct Vec3 {
     double x, y, z;
 
@@ -74,12 +73,10 @@ struct boundingBox {
 };
 
 bool boundingBoxIntersectsTriangle (const boundingBox& box, const Triangle& tri) {
-    // Translasi segitiga
     Vec3 v0 = tri.v0 - box.center;
     Vec3 v1 = tri.v1 - box.center;
     Vec3 v2 = tri.v2 - box.center;
 
-    // Untuk rusuk segitiga
     Vec3 r0 = v1 - v0;
     Vec3 r1 = v2 - v1;
     Vec3 r2 = v0 - v2;
@@ -87,7 +84,6 @@ bool boundingBoxIntersectsTriangle (const boundingBox& box, const Triangle& tri)
     double rx = box.half.x, ry = box.half.y, rz = box.half.z;
 
     auto testAxis = [&](Vec3 axis, Vec3 va, Vec3 vb, Vec3 vc) -> bool {
-        // Proyeksi vertex ke sumbu
         double p0 = axis.dotproduct(va);
         double p1 = axis.dotproduct(vb);
         double p2 = axis.dotproduct(vc);
@@ -98,7 +94,6 @@ bool boundingBoxIntersectsTriangle (const boundingBox& box, const Triangle& tri)
         return !(mn > r || mx < -r);
     };
 
-    // 9 sumbu cross product
     if (!testAxis({0, -r0.z, r0.y}, v0, v1, v2)) return false;
     if (!testAxis({0, -r1.z, r1.y}, v0, v1, v2)) return false;
     if (!testAxis({0, -r2.z, r2.y}, v0, v1, v2)) return false;
@@ -111,12 +106,10 @@ bool boundingBoxIntersectsTriangle (const boundingBox& box, const Triangle& tri)
     if (!testAxis({-r1.y, r1.x, 0}, v0, v1, v2)) return false;
     if (!testAxis({-r2.y, r2.x, 0}, v0, v1, v2)) return false;
 
-    // menguji 3 sumbu normal box
     if (std::max({v0.x, v1.x, v2.x}) < -rx || std::min({v0.x, v1.x, v2.x}) > rx) return false;
     if (std::max({v0.y, v1.y, v2.y}) < -ry || std::min({v0.y, v1.y, v2.y}) > ry) return false;
     if (std::max({v0.z, v1.z, v2.z}) < -rz || std::min({v0.z, v1.z, v2.z}) > rz) return false;
 
-    // menguji sumbu normal segitiga
     Vec3 n = r0.crossproduct(r1);
     double d = n.dotproduct(v0);
     double r = (rx * std::abs(n.x)) + (ry * std::abs(n.y)) + (rz * std::abs(n.z));
@@ -265,7 +258,6 @@ void writeVoxelOBJ (const std::string& path, const std::vector <boundingBox>& vo
     file << "# Hasil voxelization\n";
     file << "# Jumlah voxel: " << voxels.size() << "\n\n";
 
-    // Index vertex global (memakai 1-based indexing)
     int vertexOffset = 1;
 
     for (const auto& box : voxels) {
@@ -283,35 +275,26 @@ void writeVoxelOBJ (const std::string& path, const std::vector <boundingBox>& vo
 
         int verOf = vertexOffset;
 
-        // 6 sisi kubus, masing-masing 2 segitiga
-        // sisi bawah
         file << "f " << verOf + 0 << " " << verOf + 1 << " " << verOf + 2 << "\n";
         file << "f " << verOf + 0 << " " << verOf + 2 << " " << verOf + 3 << "\n";
 
-        // sisi atas
         file << "f " << verOf + 4 << " " << verOf + 6 << " " << verOf + 5 << "\n";
         file << "f " << verOf + 4 << " " << verOf + 7 << " " << verOf + 6 << "\n";
 
-        // sisi depan
         file << "f " << verOf + 0 << " " << verOf + 3 << " " << verOf + 7 << "\n";
         file << "f " << verOf + 0 << " " << verOf + 7 << " " << verOf + 4 << "\n";
 
-        // sisi belakang
         file << "f " << verOf + 1 << " " << verOf + 5 << " " << verOf + 6 << "\n";
         file << "f " << verOf + 1 << " " << verOf + 6 << " " << verOf + 2 << "\n";
 
-        // sisi kiri
         file << "f " << verOf + 0 << " " << verOf + 4 << " " << verOf + 5 << "\n";
         file << "f " << verOf + 0 << " " << verOf + 5 << " " << verOf + 1 << "\n";
 
-        // sisi kanan 
         file << "f " << verOf + 3 << " " << verOf + 2 << " " << verOf + 6 << "\n";
         file << "f " << verOf + 3 << " " << verOf + 6 << " " << verOf + 7 << "\n";
 
         vertexOffset += 8;
     }
-
-    // melakukan update statistik
     stats.vertexCount = (long long) voxels.size() * 8;
     stats.faceCount = (long long)voxels.size() * 12;
 
@@ -328,8 +311,7 @@ boundingBox computeBoundingBox(const std::vector<Vec3>& vertices) {
         yMin = std::min(yMin, v.y); yMax = std::max(yMax, v.y);
         zMin = std::min(zMin, v.z); zMax = std::max(zMax, v.z);
     }
- 
-    // Jadikan kubus 
+
     double sizeX = xMax - xMin;
     double sizeY = yMax - yMin;
     double sizeZ = zMax - zMin;
@@ -375,7 +357,6 @@ void printReport (const Stats& stats, const std::string& outputPath, double elap
 }
 
 int main(int argc, char* argv[]) {
-    // --- Validasi argumen ---
     if (argc < 3) {
         std::cerr << "Penggunaan: " << argv[0] << " <path_input.obj> <maxDepth>\n";
         std::cerr << "Contoh    : " << argv[0] << " model.obj 5\n";
@@ -421,14 +402,12 @@ int main(int argc, char* argv[]) {
  
     std::cout << "[INFO] Vertex   : " << vertices.size()  << "\n";
     std::cout << "[INFO] Segitiga : " << triangles.size() << "\n";
- 
-    // --- Hitung bounding box root ---
+
     boundingBox rootBox = computeBoundingBox(vertices);
     std::cout << "[INFO] Bounding box:\n";
     std::cout << "       Min: (" << rootBox.min().x << ", " << rootBox.min().y << ", " << rootBox.min().z << ")\n";
     std::cout << "       Max: (" << rootBox.max().x << ", " << rootBox.max().y << ", " << rootBox.max().z << ")\n";
- 
-    // Jalankan Divide and Conquer 
+
     std::cout << "[INFO] Menjalankan subdivisi octree (maxDepth=" << maxDepth << ")...\n";
     Stats stats(maxDepth);
     std::vector<boundingBox> voxels;
