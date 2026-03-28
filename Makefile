@@ -13,7 +13,7 @@ directories:
 $(OBJ): $(SRC)
 	$(CXX) $(CXXFLAGS) $(SRC) -o $(OBJ)
 
-# Cara pakai: make run FILE=test/Initial_Object/cube.obj DEPTH=5
+# Cara pakai: make run FILE=test/Initial_Object/<nama_Initial_Object>.obj DEPTH=5
 run: all
 	./$(OBJ) $(FILE) $(DEPTH)
 
